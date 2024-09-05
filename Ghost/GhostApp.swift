@@ -8,6 +8,8 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import Combine
+
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -32,6 +34,8 @@ struct GhostApp: App {
                 }
             }
             .environmentObject(authManager)
+            .environmentObject(ThemeManager()) // Provide a ThemeManager instance
+
         }
     }
 }

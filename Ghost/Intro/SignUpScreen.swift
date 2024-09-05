@@ -1,4 +1,6 @@
 import SwiftUI
+import Firebase
+import FirebaseAuth
 
 struct SignUpScreen: View {
     @EnvironmentObject var authManager: AuthManager
@@ -25,7 +27,7 @@ struct SignUpScreen: View {
                     .foregroundColor(.white)
                     .padding(.bottom, 30)
                 
-                TextField("Name", text: $name)
+                TextField("Username", text: $name)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
                     .background(Color.white.opacity(0.2))
@@ -115,11 +117,47 @@ struct SignUpScreen: View {
         
         isLoading = true
         authManager.signUp(email: email, password: password) { success in
-            isLoading = false
             if success {
-                isSignedUp = true
+                // Once signed up, store user information in the Realtime Database
+                addUserToDatabase()
             } else {
+                isLoading = false
                 errorMessage = "Sign Up failed. Please try again."
+            }
+        }
+    }
+    
+    private func addUserToDatabase() {
+        guard let user = Auth.auth().currentUser else {
+            isLoading = false
+            errorMessage = "User not found after sign up."
+            return
+        }
+        
+        let ref = Database.database().reference()
+        let userData = [
+            "name": name,
+            "email": email,
+          //  "username": email.components(separatedBy: "@").first ?? "", // Derive username from email
+            "username":name,
+            "today_mileage": 0,
+            "weekly_mileage": 0,
+            "monthly_mileage": 0,
+            "yearly_mileage": 0,
+            "today_minutes": 0,
+            "weekly_minutes": 0,
+            "monthly_minutes": 0,
+            "yearly_minutes": 0,
+            "fastest_all_time_speed": 0
+        ] as [String : Any]
+        
+        ref.child("users").child(user.uid).setValue(userData) { error, _ in
+            isLoading = false
+            if let error = error {
+                errorMessage = "Failed to save user data: \(error.localizedDescription)"
+            } else {
+                isSignedUp = true
+                // Optionally navigate to another screen or show a success message
             }
         }
     }
