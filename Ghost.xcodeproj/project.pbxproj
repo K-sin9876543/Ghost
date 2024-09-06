@@ -33,6 +33,7 @@
 		1BBC97552C88B94200316CFB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97542C88B94200316CFB /* User.swift */; };
 		1BBC97572C890F0C00316CFB /* NotificationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97562C890F0C00316CFB /* NotificationScreen.swift */; };
 		1BBC97592C890F5000316CFB /* FriendProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97582C890F5000316CFB /* FriendProfileScreen.swift */; };
+		1BBC975D2C894CE500316CFB /* StartNewRunScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,7 @@
 		1BBC97542C88B94200316CFB /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		1BBC97562C890F0C00316CFB /* NotificationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScreen.swift; sourceTree = "<group>"; };
 		1BBC97582C890F5000316CFB /* FriendProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendProfileScreen.swift; sourceTree = "<group>"; };
+		1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewRunScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,15 +98,13 @@
 			isa = PBXGroup;
 			children = (
 				1B76ABD72C864BB40068FFF1 /* GhostApp.swift */,
+				1BBC975B2C8943C300316CFB /* FriendsScreens */,
 				1BBC975A2C892FF900316CFB /* not touch */,
 				1B76AC442C8678D60068FFF1 /* Intro */,
 				1B76AC432C8678CA0068FFF1 /* Data */,
 				1B76AC3A2C866CE10068FFF1 /* HomeScreen.swift */,
-				1BBC97502C87D7F200316CFB /* FriendsScreen.swift */,
-				1BBC97542C88B94200316CFB /* User.swift */,
-				1BBC97522C87DA6700316CFB /* AddFriendScreen.swift */,
 				1B76ABDB2C864BB50068FFF1 /* Assets.xcassets */,
-				1BBC97582C890F5000316CFB /* FriendProfileScreen.swift */,
+				1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */,
 				1B76AC1B2C86605A0068FFF1 /* GoogleService-Info.plist */,
 				1B76ABDD2C864BB50068FFF1 /* Preview Content */,
 			);
@@ -122,6 +122,7 @@
 		1B76AC432C8678CA0068FFF1 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				1BBC97542C88B94200316CFB /* User.swift */,
 				1B76AC3C2C866DF70068FFF1 /* AuthManager.swift */,
 				1B76AC412C8678C20068FFF1 /* Color.swift */,
 			);
@@ -146,6 +147,16 @@
 				1BBC97562C890F0C00316CFB /* NotificationScreen.swift */,
 			);
 			name = "not touch";
+			sourceTree = "<group>";
+		};
+		1BBC975B2C8943C300316CFB /* FriendsScreens */ = {
+			isa = PBXGroup;
+			children = (
+				1BBC97502C87D7F200316CFB /* FriendsScreen.swift */,
+				1BBC97522C87DA6700316CFB /* AddFriendScreen.swift */,
+				1BBC97582C890F5000316CFB /* FriendProfileScreen.swift */,
+			);
+			name = FriendsScreens;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -234,6 +245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1B76ABDA2C864BB40068FFF1 /* WelcomeScreen.swift in Sources */,
+				1BBC975D2C894CE500316CFB /* StartNewRunScreen.swift in Sources */,
 				1B76AC3D2C866DF70068FFF1 /* AuthManager.swift in Sources */,
 				1B76AC422C8678C20068FFF1 /* Color.swift in Sources */,
 				1BBC97592C890F5000316CFB /* FriendProfileScreen.swift in Sources */,

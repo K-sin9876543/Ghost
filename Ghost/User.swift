@@ -8,3 +8,9 @@
 import Foundation
 import SwiftUI
 
+struct User: Identifiable {
+    let id = UUID()
+    let uid: String
+    let username: String
+    let email: String
+}
