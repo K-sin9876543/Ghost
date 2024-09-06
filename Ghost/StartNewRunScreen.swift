@@ -3,7 +3,6 @@ import MapKit
 import Firebase
 import FirebaseAuth
 
-
 struct StartNewRunScreen: View {
     @State private var isTracking = false
     @State private var routeCoordinates: [CLLocationCoordinate2D] = []
@@ -15,6 +14,11 @@ struct StartNewRunScreen: View {
     @State private var locationManager = LocationManager()
    
     @State private var selectedColor: Color = ThemeManager().accentColor
+
+    // Timer-related states
+    @State private var elapsedTime: TimeInterval = 0.0
+    @State private var timer: Timer? = nil
+    @State private var startTime: Date? = nil
 
     var body: some View {
         VStack {
@@ -28,6 +32,7 @@ struct StartNewRunScreen: View {
                 Text("Current Speed: \(String(format: "%.2f", currentSpeed)) mph")
                 Text("Top Speed: \(String(format: "%.2f", topSpeed)) mph")
                 Text("Distance: \(String(format: "%.2f", distanceTraveled)) miles")
+                Text("Time: \(formatElapsedTime(elapsedTime))") // Display the elapsed time
             }
             .font(.headline)
             .padding()
@@ -39,14 +44,10 @@ struct StartNewRunScreen: View {
                 isTracking.toggle()
                 if isTracking {
                     // Start run
-                    locationManager.startTracking { location in
-                        updateRunStats(with: location)
-                    }
-                    startLocation = routeCoordinates.last // Save start location
+                    startRun()
                 } else {
                     // Stop run
-                    locationManager.stopTracking()
-                    endLocation = routeCoordinates.last // Save end location
+                    stopRun()
                 }
             }) {
                 Text(isTracking ? "Stop Run" : "Start Run")
@@ -90,26 +91,120 @@ struct StartNewRunScreen: View {
         }
     }
     
+    // Start the run and the timer
+    private func startRun() {
+        locationManager.startTracking { location in
+            updateRunStats(with: location)
+        }
+        startLocation = routeCoordinates.last // Save start location
+        startTime = Date()
+        startTimer()
+    }
+    
+    // Stop the run and the timer
+    private func stopRun() {
+        locationManager.stopTracking()
+        endLocation = routeCoordinates.last // Save end location
+        stopTimer()
+    }
+    
+    // Start the timer
+    private func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            if let startTime = startTime {
+                elapsedTime = Date().timeIntervalSince(startTime)
+            }
+        }
+    }
+    
+    // Stop the timer
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    // Format elapsed time as hh:mm:ss
+    private func formatElapsedTime(_ time: TimeInterval) -> String {
+        let hours = Int(time) / 3600
+        let minutes = (Int(time) % 3600) / 60
+        let seconds = Int(time) % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
     // Save run data to Firebase
     private func saveRun() {
         let userId = Auth.auth().currentUser?.uid ?? "unknown_user"
-        let ref = Database.database().reference().child("users").child(userId).child("drives").childByAutoId()
-        
-        let runData: [String: Any] = [
-            "route": routeCoordinates.map { ["lat": $0.latitude, "lng": $0.longitude] },
-            "topSpeed": topSpeed,
-            "distance": distanceTraveled,
-            "date": Date().timeIntervalSince1970,
-            "startLocation": ["lat": startLocation?.latitude ?? 0.0, "lng": startLocation?.longitude ?? 0.0],
-            "endLocation": ["lat": endLocation?.latitude ?? 0.0, "lng": endLocation?.longitude ?? 0.0]
-        ]
-        
-        ref.setValue(runData) { error, _ in
-            if let error = error {
-                print("Error saving run: \(error.localizedDescription)")
-            } else {
-                print("Run saved successfully")
-                resetRun()
+        let ref = Database.database().reference().child("users").child(userId)
+
+        ref.observeSingleEvent(of: .value) { snapshot in
+            if var userData = snapshot.value as? [String: Any] {
+                // Fetch existing stats
+                let todayMileage = userData["today_mileage"] as? Double ?? 0.0
+                let todayMinutes = userData["today_minutes"] as? Double ?? 0.0
+                let weeklyMileage = userData["weekly_mileage"] as? Double ?? 0.0
+                let weeklyMinutes = userData["weekly_minutes"] as? Double ?? 0.0
+                let monthlyMileage = userData["monthly_mileage"] as? Double ?? 0.0
+                let monthlyMinutes = userData["monthly_minutes"] as? Double ?? 0.0
+                let yearlyMileage = userData["yearly_mileage"] as? Double ?? 0.0
+                let yearlyMinutes = userData["yearly_minutes"] as? Double ?? 0.0
+
+                // Update stats with the new run data
+                let updatedTodayMileage = todayMileage + distanceTraveled
+                let updatedTodayMinutes = todayMinutes + (elapsedTime / 60) // Convert seconds to minutes
+                let updatedWeeklyMileage = weeklyMileage + distanceTraveled
+                let updatedWeeklyMinutes = weeklyMinutes + (elapsedTime / 60)
+                let updatedMonthlyMileage = monthlyMileage + distanceTraveled
+                let updatedMonthlyMinutes = monthlyMinutes + (elapsedTime / 60)
+                let updatedYearlyMileage = yearlyMileage + distanceTraveled
+                let updatedYearlyMinutes = yearlyMinutes + (elapsedTime / 60)
+
+                // Prepare the data for saving
+                let runData: [String: Any] = [
+                    "route": routeCoordinates.map { ["lat": $0.latitude, "lng": $0.longitude] },
+                    "topSpeed": topSpeed,
+                    "distance": distanceTraveled,
+                    "duration": elapsedTime,
+                    "date": Date().timeIntervalSince1970,
+                    "startLocation": ["lat": startLocation?.latitude ?? 0.0, "lng": startLocation?.longitude ?? 0.0],
+                    "endLocation": ["lat": endLocation?.latitude ?? 0.0, "lng": endLocation?.longitude ?? 0.0],
+                    "today_mileage": updatedTodayMileage,
+                    "today_minutes": updatedTodayMinutes,
+                    "weekly_mileage": updatedWeeklyMileage,
+                    "weekly_minutes": updatedWeeklyMinutes,
+                    "monthly_mileage": updatedMonthlyMileage,
+                    "monthly_minutes": updatedMonthlyMinutes,
+                    "yearly_mileage": updatedYearlyMileage,
+                    "yearly_minutes": updatedYearlyMinutes
+                ]
+                
+                // Save run data and updated stats
+                let driveRef = ref.child("drives").childByAutoId()
+                driveRef.setValue(runData) { error, _ in
+                    if let error = error {
+                        print("Error saving run: \(error.localizedDescription)")
+                    } else {
+                        // Save the updated stats back to the user node
+                        let updatedStats: [String: Any] = [
+                            "today_mileage": updatedTodayMileage,
+                            "today_minutes": updatedTodayMinutes,
+                            "weekly_mileage": updatedWeeklyMileage,
+                            "weekly_minutes": updatedWeeklyMinutes,
+                            "monthly_mileage": updatedMonthlyMileage,
+                            "monthly_minutes": updatedMonthlyMinutes,
+                            "yearly_mileage": updatedYearlyMileage,
+                            "yearly_minutes": updatedYearlyMinutes
+                        ]
+                        
+                        ref.updateChildValues(updatedStats) { error, _ in
+                            if let error = error {
+                                print("Error updating stats: \(error.localizedDescription)")
+                            } else {
+                                print("Run and stats saved successfully")
+                                resetRun()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -120,6 +215,7 @@ struct StartNewRunScreen: View {
         currentSpeed = 0.0
         topSpeed = 0.0
         distanceTraveled = 0.0
+        elapsedTime = 0.0
         startLocation = nil
         endLocation = nil
     }
@@ -135,11 +231,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 5 // Smaller filter for faster updates
+        locationManager.allowsBackgroundLocationUpdates = true // Enable background location updates
+        locationManager.pausesLocationUpdatesAutomatically = false // Prevent location updates from stopping
     }
     
     func checkPermissions() {
         if CLLocationManager.locationServicesEnabled() {
-            locationManager.requestWhenInUseAuthorization()
+            locationManager.requestAlwaysAuthorization() // Request permission to always access location
         }
     }
     
@@ -157,6 +255,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if let location = locations.last {
             locationUpdateHandler?(location)
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("LocationManager failed with error: \(error.localizedDescription)")
     }
 }
 
@@ -220,7 +322,7 @@ struct MapView: UIViewRepresentable {
                 renderer.lineWidth = 4.0
                 return renderer
             }
-            return MKOverlayRenderer()
+            return MKOverlayRenderer(overlay: overlay)
         }
     }
 }

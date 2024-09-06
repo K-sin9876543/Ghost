@@ -56,6 +56,7 @@
 		1BBC97562C890F0C00316CFB /* NotificationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScreen.swift; sourceTree = "<group>"; };
 		1BBC97582C890F5000316CFB /* FriendProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendProfileScreen.swift; sourceTree = "<group>"; };
 		1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartNewRunScreen.swift; sourceTree = "<group>"; };
+		1BBC97642C8ABB1E00316CFB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +98,7 @@
 		1B76ABD62C864BB40068FFF1 /* Ghost */ = {
 			isa = PBXGroup;
 			children = (
+				1BBC97642C8ABB1E00316CFB /* Info.plist */,
 				1B76ABD72C864BB40068FFF1 /* GhostApp.swift */,
 				1BBC975B2C8943C300316CFB /* FriendsScreens */,
 				1BBC975A2C892FF900316CFB /* not touch */,
@@ -105,6 +107,7 @@
 				1B76AC3A2C866CE10068FFF1 /* HomeScreen.swift */,
 				1B76ABDB2C864BB50068FFF1 /* Assets.xcassets */,
 				1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */,
+				1B76AC472C868FAC0068FFF1 /* MapsScreen.swift */,
 				1B76AC1B2C86605A0068FFF1 /* GoogleService-Info.plist */,
 				1B76ABDD2C864BB50068FFF1 /* Preview Content */,
 			);
@@ -142,7 +145,6 @@
 		1BBC975A2C892FF900316CFB /* not touch */ = {
 			isa = PBXGroup;
 			children = (
-				1B76AC472C868FAC0068FFF1 /* MapsScreen.swift */,
 				1B76AC452C8684A50068FFF1 /* ProfileScreen.swift */,
 				1BBC97562C890F0C00316CFB /* NotificationScreen.swift */,
 			);
@@ -395,6 +397,7 @@
 				DEVELOPMENT_TEAM = 249734PWK9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ghost/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show nearby friends and tracks";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -425,6 +428,7 @@
 				DEVELOPMENT_TEAM = 249734PWK9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ghost/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show nearby friends and tracks";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

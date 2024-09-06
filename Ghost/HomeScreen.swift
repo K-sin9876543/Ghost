@@ -57,14 +57,14 @@ struct HomeScreen: View {
                             case .profile:
                                 ProfileScreen()
                             case .maps:
-                                MapsScreen()
+                                MapScreen()
                             case .friends:
                                 FriendsScreen()
                             case .startrun:
                                  StartNewRunScreen()
                             }
                         }
-                        .padding(.bottom, 50) // Add padding at the bottom to avoid overlap with the bottom nav bar
+                        .padding(.bottom, 20) // Add padding at the bottom to avoid overlap with the bottom nav bar
                     }
                 }
                 
