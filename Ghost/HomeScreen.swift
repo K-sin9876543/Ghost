@@ -59,7 +59,7 @@ struct HomeScreen: View {
                             case .maps:
                                 MapScreen()
                             case .friends:
-                                FriendsScreen()
+                                FriendsScreen()// curently on this page
                             case .startrun:
                                  StartNewRunScreen()
                             }
