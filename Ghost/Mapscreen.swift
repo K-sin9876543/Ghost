@@ -1,3 +1,4 @@
+
 import SwiftUI
 import MapKit
 import Firebase
@@ -48,12 +49,19 @@ struct MapScreen: View {
             return
         }
         
-        let ref = Database.database().reference().child("users").child(userId).child("drives")
+        let ref = Database.database().reference().child("users").child(userId)
         
         ref.observeSingleEvent(of: .value) { snapshot in
+            guard let userData = snapshot.value as? [String: Any],
+                  let userName = userData["username"] as? String,
+                  let drives = userData["drives"] as? [String: [String: Any]] else {
+                print("Failed to fetch user data or drives.")
+                return
+            }
+            
             var loadedRuns: [Run] = []
-            for child in snapshot.children {
-                if let snapshot = child as? DataSnapshot, let runDict = snapshot.value as? [String: Any], let run = Run(from: runDict) {
+            for (_, runDict) in drives {
+                if let run = Run(from: runDict, userName: userName) {
                     loadedRuns.append(run)
                 }
             }
@@ -96,34 +104,80 @@ struct RunDetailView: View {
     var run: Run
     
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 0, longitude: 0), latitudinalMeters: 1000, longitudinalMeters: 1000)
+    @State private var animateProgress = false
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // User name and date at the top
+            HStack {
+                Text(run.userName)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .padding(.leading, 10)
+                
+                Spacer()
+                
+                VStack(alignment: .trailing) {
+                    Text("Date")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Text(formatDate(run.date))
+                        .font(.headline)
+                        .bold()
+                }
+                .padding(.trailing, 10)
+            }
+            .padding(.top, 10) // Padding from the top edge
+            
             // Full map showing the route
             RunMap(routeCoordinates: run.routeCoordinates, region: $region)
-                .frame(height: 300)
+                .frame(height: 400) // Increase height of the map
                 .cornerRadius(10)
+                .padding(.horizontal, -16) // Extend to screen edges
+                .ignoresSafeArea(edges: .horizontal)
             
-            // Stats for the run
-            VStack(spacing: 20) {
-                Text("Date: \(formatDate(run.date))")
-                Text("Distance: \(String(format: "%.2f", run.distance)) miles")
-                Text("Top Speed: \(String(format: "%.2f", run.topSpeed)) mph")
-                Text("Duration: \(formatElapsedTime(run.duration))")
-                   
+            // Stats for the run in a 1x3 layout
+            HStack(spacing: 20) {
+                CircularProgressBar(
+                    value: .constant(animateProgress ? run.topSpeed : 0),
+                    maxValue: 200,
+                    label: "Top Speed",
+                    unit: "mph"
+                )
+                .frame(width: 100, height: 100)
+                
+                CircularProgressBar(
+                    value: .constant(animateProgress ? run.distance : 0),
+                    maxValue: 50,
+                    label: "Distance",
+                    unit: "mi"
+                )
+                .frame(width: 100, height: 100)
+                
+                CircularProgressBar(
+                    value: .constant(animateProgress ? run.duration / 60 : 0),
+                    maxValue: 120,
+                    label: "Duration",
+                    unit: "min"
+                )
+                .frame(width: 100, height: 100)
             }
-            .font(.headline)
-            .padding()
+            .padding(.top, 10)
         }
+        .padding(.horizontal)
         .navigationBarTitle("Run Details", displayMode: .inline)
         .onAppear {
             if let firstCoordinate = run.routeCoordinates.first {
                 region = MKCoordinateRegion(center: firstCoordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
             }
+            
+            // Animate progress bars
+            withAnimation(.easeOut(duration: 3.0)) {
+                animateProgress = true
+            }
         }
     }
     
-    // Helper methods to format date and time
     private func formatDate(_ timestamp: TimeInterval) -> String {
         let date = Date(timeIntervalSince1970: timestamp)
         let formatter = DateFormatter()
@@ -131,16 +185,13 @@ struct RunDetailView: View {
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    
-    private func formatElapsedTime(_ time: TimeInterval) -> String {
-        let hours = Int(time) / 3600
-        let minutes = (Int(time) % 3600) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    }
 }
 
-// Model for storing run data
+
+
+
+
+
 struct Run: Identifiable {
     let id = UUID()
     let date: TimeInterval
@@ -148,9 +199,10 @@ struct Run: Identifiable {
     let distance: Double
     let topSpeed: Double
     let duration: TimeInterval
+    let userName: String // Add this property to store the user's name
     
     // Initialize run data from Firebase
-    init?(from dict: [String: Any]) {
+    init?(from dict: [String: Any], userName: String) {
         guard let date = dict["date"] as? TimeInterval,
               let routeArray = dict["route"] as? [[String: Double]],
               let distance = dict["distance"] as? Double,
@@ -163,6 +215,7 @@ struct Run: Identifiable {
         self.distance = distance
         self.topSpeed = topSpeed
         self.duration = duration
+        self.userName = userName // Assign the user name
         
         self.routeCoordinates = routeArray.compactMap { coord in
             if let lat = coord["lat"], let lng = coord["lng"] {

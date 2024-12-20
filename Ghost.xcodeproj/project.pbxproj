@@ -27,7 +27,7 @@
 		1B76AC3D2C866DF70068FFF1 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B76AC3C2C866DF70068FFF1 /* AuthManager.swift */; };
 		1B76AC422C8678C20068FFF1 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B76AC412C8678C20068FFF1 /* Color.swift */; };
 		1B76AC462C8684A50068FFF1 /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B76AC452C8684A50068FFF1 /* ProfileScreen.swift */; };
-		1B76AC482C868FAC0068FFF1 /* MapsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B76AC472C868FAC0068FFF1 /* MapsScreen.swift */; };
+		1B76AC482C868FAC0068FFF1 /* Mapscreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B76AC472C868FAC0068FFF1 /* Mapscreen.swift */; };
 		1BBC97512C87D7F200316CFB /* FriendsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97502C87D7F200316CFB /* FriendsScreen.swift */; };
 		1BBC97532C87DA6700316CFB /* AddFriendScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97522C87DA6700316CFB /* AddFriendScreen.swift */; };
 		1BBC97552C88B94200316CFB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBC97542C88B94200316CFB /* User.swift */; };
@@ -49,7 +49,7 @@
 		1B76AC3C2C866DF70068FFF1 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		1B76AC412C8678C20068FFF1 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		1B76AC452C8684A50068FFF1 /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
-		1B76AC472C868FAC0068FFF1 /* MapsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapsScreen.swift; sourceTree = "<group>"; };
+		1B76AC472C868FAC0068FFF1 /* Mapscreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapscreen.swift; sourceTree = "<group>"; };
 		1BBC97502C87D7F200316CFB /* FriendsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsScreen.swift; sourceTree = "<group>"; };
 		1BBC97522C87DA6700316CFB /* AddFriendScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFriendScreen.swift; sourceTree = "<group>"; };
 		1BBC97542C88B94200316CFB /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -100,14 +100,14 @@
 			children = (
 				1BBC97642C8ABB1E00316CFB /* Info.plist */,
 				1B76ABD72C864BB40068FFF1 /* GhostApp.swift */,
+				1B76AC442C8678D60068FFF1 /* Intro */,
 				1BBC975B2C8943C300316CFB /* FriendsScreens */,
 				1BBC975A2C892FF900316CFB /* not touch */,
-				1B76AC442C8678D60068FFF1 /* Intro */,
 				1B76AC432C8678CA0068FFF1 /* Data */,
 				1B76AC3A2C866CE10068FFF1 /* HomeScreen.swift */,
 				1B76ABDB2C864BB50068FFF1 /* Assets.xcassets */,
 				1BBC975C2C894CE500316CFB /* StartNewRunScreen.swift */,
-				1B76AC472C868FAC0068FFF1 /* MapsScreen.swift */,
+				1B76AC472C868FAC0068FFF1 /* Mapscreen.swift */,
 				1B76AC1B2C86605A0068FFF1 /* GoogleService-Info.plist */,
 				1B76ABDD2C864BB50068FFF1 /* Preview Content */,
 			);
@@ -253,7 +253,7 @@
 				1BBC97592C890F5000316CFB /* FriendProfileScreen.swift in Sources */,
 				1B76AC3B2C866CE10068FFF1 /* HomeScreen.swift in Sources */,
 				1BBC97572C890F0C00316CFB /* NotificationScreen.swift in Sources */,
-				1B76AC482C868FAC0068FFF1 /* MapsScreen.swift in Sources */,
+				1B76AC482C868FAC0068FFF1 /* Mapscreen.swift in Sources */,
 				1B76AC392C866C900068FFF1 /* LoginScreen.swift in Sources */,
 				1BBC97532C87DA6700316CFB /* AddFriendScreen.swift in Sources */,
 				1B76ABD82C864BB40068FFF1 /* GhostApp.swift in Sources */,

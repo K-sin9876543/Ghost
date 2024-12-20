@@ -19,6 +19,9 @@ struct StartNewRunScreen: View {
     @State private var elapsedTime: TimeInterval = 0.0
     @State private var timer: Timer? = nil
     @State private var startTime: Date? = nil
+    
+    // Track speeds over time for the graph
+    @State private var speedHistory: [(time: TimeInterval, speed: Double)] = []
 
     var body: some View {
         VStack {
@@ -26,53 +29,81 @@ struct StartNewRunScreen: View {
             MapView(routeCoordinates: $routeCoordinates, startLocation: $startLocation, endLocation: $endLocation)
                 .frame(height: 300)
                 .cornerRadius(10)
-            
-            // Live Stats
-            VStack(spacing: 20) {
-                Text("Current Speed: \(String(format: "%.2f", currentSpeed)) mph")
-                Text("Top Speed: \(String(format: "%.2f", topSpeed)) mph")
-                Text("Distance: \(String(format: "%.2f", distanceTraveled)) miles")
-                Text("Time: \(formatElapsedTime(elapsedTime))") // Display the elapsed time
-            }
-            .font(.headline)
-            .padding()
-            
             Spacer()
             
-            // Start/Stop Button
-            Button(action: {
-                isTracking.toggle()
-                if isTracking {
-                    // Start run
-                    startRun()
-                } else {
-                    // Stop run
-                    stopRun()
-                }
-            }) {
-                Text(isTracking ? "Stop Run" : "Start Run")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isTracking ? Color.red : Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-            }
-            
-            // Save Button (Only appears after run stops)
-            if !isTracking && !routeCoordinates.isEmpty {
-                Button(action: saveRun) {
-                    Text("Save Run")
+            VStack {
+                // Start/Stop Button
+                Button(action: {
+                    isTracking.toggle()
+                    if isTracking {
+                        startRun()
+                    } else {
+                        stopRun()
+                    }
+                }) {
+                    Text(isTracking ? "Stop Run" : "Start Run")
+                        .font(.headline)
+                        .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(selectedColor)
+                        .background(
+                            LinearGradient(gradient: Gradient(colors: isTracking ? [Color.red, Color.orange] : [Color.green, Color.blue]),
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing)
+                        )
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
+                        .shadow(color: isTracking ? Color.red.opacity(0.6) : Color.green.opacity(0.6), radius: 6, x: 0, y: 4)
+                        .scaleEffect(isTracking ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.5), value: isTracking)
                         .padding(.horizontal)
                 }
+                .buttonStyle(PressedButtonStyle())
+                
+                // Save Button
+                if !isTracking && !routeCoordinates.isEmpty {
+                    Button(action: saveRun) {
+                        Text("Save Run")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [selectedColor.opacity(0.8), selectedColor]),
+                                               startPoint: .topLeading,
+                                               endPoint: .bottomTrailing)
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                            .shadow(color: selectedColor.opacity(0.6), radius: 6, x: 0, y: 4)
+                            .scaleEffect(1.0)
+                           // .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.5), value: routeCoordinates)
+                            .padding(.horizontal)
+                    }
+                    .buttonStyle(PressedButtonStyle())
+                }
             }
+            .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0 + 16)
+            // Live Stats with Visual Flair
+            VStack(spacing: 20) {
+                VStack(spacing: 40) {
+                    // Speedometer for current speed
+                    CircularProgressBar(value: $currentSpeed, maxValue: 150, label: "Speed", unit: "mph")
+                        .frame(width: 100, height: 100)
+
+                    // Arc for distance
+                    DistanceArc(distance: $distanceTraveled, target: 100)
+                        .frame(width: 100, height: 100)
+                }
+
+                // Graph for speed over time
+                SpeedGraph(speedHistory: $speedHistory)
+                    .frame(height: 150)
+                    .padding(.horizontal)
+            }
+            .padding()
             
-            Spacer()
+           
         }
         .onAppear {
             locationManager.checkPermissions()
@@ -82,8 +113,13 @@ struct StartNewRunScreen: View {
     // Update stats during the run
     private func updateRunStats(with location: CLLocation) {
         routeCoordinates.append(location.coordinate)
-        currentSpeed = max(location.speed * 2.23694, 0) // Convert m/s to mph, ensure no negative speed
-        topSpeed = max(topSpeed, currentSpeed)
+        let speed = max(location.speed * 2.23694, 0) // Convert m/s to mph
+        currentSpeed = speed
+        topSpeed = max(topSpeed, speed)
+        
+        if let startTime = startTime {
+            speedHistory.append((time: Date().timeIntervalSince(startTime), speed: speed))
+        }
         
         if routeCoordinates.count > 1 {
             let lastLocation = CLLocation(latitude: routeCoordinates[routeCoordinates.count - 2].latitude, longitude: routeCoordinates[routeCoordinates.count - 2].longitude)
@@ -91,24 +127,21 @@ struct StartNewRunScreen: View {
         }
     }
     
-    // Start the run and the timer
     private func startRun() {
         locationManager.startTracking { location in
             updateRunStats(with: location)
         }
-        startLocation = routeCoordinates.last // Save start location
+        startLocation = routeCoordinates.last
         startTime = Date()
         startTimer()
     }
     
-    // Stop the run and the timer
     private func stopRun() {
         locationManager.stopTracking()
-        endLocation = routeCoordinates.last // Save end location
+        endLocation = routeCoordinates.last
         stopTimer()
     }
     
-    // Start the timer
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if let startTime = startTime {
@@ -117,20 +150,10 @@ struct StartNewRunScreen: View {
         }
     }
     
-    // Stop the timer
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
     }
-    
-    // Format elapsed time as hh:mm:ss
-    private func formatElapsedTime(_ time: TimeInterval) -> String {
-        let hours = Int(time) / 3600
-        let minutes = (Int(time) % 3600) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    }
-
     // Save run data to Firebase
     private func saveRun() {
         let userId = Auth.auth().currentUser?.uid ?? "unknown_user"
@@ -220,6 +243,8 @@ struct StartNewRunScreen: View {
         endLocation = nil
     }
 }
+
+
 
 // Location Manager for tracking
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -324,5 +349,93 @@ struct MapView: UIViewRepresentable {
             }
             return MKOverlayRenderer(overlay: overlay)
         }
+    }
+}
+
+struct CircularProgressBar: View {
+    @Binding var value: Double
+    var maxValue: Double
+    var label: String
+    var unit: String
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.gray.opacity(0.3), lineWidth: 10)
+            Circle()
+                .trim(from: 0.0, to: CGFloat(min(value / maxValue, 1.0)))
+                .stroke(Color.green, style: StrokeStyle(lineWidth: 10, lineCap: .round)) // Green progress bar
+                .rotationEffect(.degrees(-90))
+                .animation(.easeOut(duration: 3.0), value: value) // Slower animation
+
+            VStack {
+                Text(label)
+                    .font(.caption)
+                Text("\(String(format: "%.0f", value)) \(unit)")
+                    .font(.headline)
+            }
+        }
+    }
+}
+
+// Distance Arc Visualization
+struct DistanceArc: View {
+    @Binding var distance: Double
+    var target: Double
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.gray.opacity(0.3), lineWidth: 10)
+            Circle()
+                .trim(from: 0.0, to: CGFloat(min(distance / target, 1.0)))
+                .stroke(Color.green, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.linear, value: distance)
+
+            VStack {
+                Text("Distance")
+                    .font(.caption)
+                Text("\(String(format: "%.2f", distance)) mi")
+                    .font(.headline)
+            }
+        }
+    }
+}
+
+// Graph for Speed History
+struct SpeedGraph: View {
+    @Binding var speedHistory: [(time: TimeInterval, speed: Double)]
+
+    var body: some View {
+        GeometryReader { geometry in
+            Path { path in
+                guard speedHistory.count > 1 else { return }
+                
+                let maxSpeed = speedHistory.map { $0.speed }.max() ?? 0
+                let timeSpan = speedHistory.last?.time ?? 1.0
+                
+                for (index, entry) in speedHistory.enumerated() {
+                    let x = CGFloat(entry.time / timeSpan) * geometry.size.width
+                    let y = geometry.size.height - (CGFloat(entry.speed / maxSpeed) * geometry.size.height)
+                    
+                    if index == 0 {
+                        path.move(to: CGPoint(x: x, y: y))
+                    } else {
+                        path.addLine(to: CGPoint(x: x, y: y))
+                    }
+                }
+            }
+            .stroke(Color.red, lineWidth: 2)
+        }
+    }
+}
+
+struct PressedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
